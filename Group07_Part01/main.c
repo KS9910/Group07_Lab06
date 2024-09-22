@@ -15,23 +15,36 @@
 #define ENABLE      (1 << 0)    // bit 0 of CSR to enable the timer
 #define CLKINT      (1 << 2)    // bit 2 of CSR to specify CPU clock
 
-
+int i = 10;
+int d = 10;
 #define CLOCK_MHZ 16
 void initial_setup(void);
 void Delay(int);
-void GPIO_Handler(int, int);
+void GPIO_Handler(void);
 
-void GPIO_Handler(int i, int d) {
+void GPIO_Handler(void) {
     if (GPIO_PORTF_MIS_R & 0x10){
         GPIO_PORTF_ICR_R |= SW1;   // Clear the interrupt flag for SW1
-        i = i+1;
-        d = d-1;
+        if (d == 0){
+            i = i;
+            d = d;
+        }
+        else{
+            i = i+1;
+            d = d-1;
+        }
     }
     if (GPIO_PORTF_MIS_R & 0x01){
             GPIO_PORTF_ICR_R |= SW2;   // Clear the interrupt flag for SW1
+        if (i == 0){
+            i = i;
+            d = d;
+        }
+        else{
             i = i-1;
             d = d + 1;
         }
+    }
 }
 
 void Delay(int s)
@@ -50,17 +63,30 @@ void Delay(int s)
 
 int main(void)
 {
-    int i = 10;
-    int d = 10;
+
         initial_setup();
 //        int i = 10;
 
         int c = 8;  // no. of ticks for 5%
         while(1){
-            GPIO_PORTF_DATA_R = 0x02;
-            Delay(i*c);
-            GPIO_PORTF_DATA_R = 0x00;
-            Delay(d*c);
+            if (d == 0){
+                GPIO_PORTF_DATA_R = 0x02;
+                Delay(i*c-1);
+                GPIO_PORTF_DATA_R = 0x00;
+                Delay(d*c+1);
+            }
+            else if (i == 0){
+                GPIO_PORTF_DATA_R = 0x02;
+                Delay(i*c+1);
+                GPIO_PORTF_DATA_R = 0x00;
+                Delay(d*c-1);
+            }
+            else{
+                GPIO_PORTF_DATA_R = 0x02;
+                Delay(i*c);
+                GPIO_PORTF_DATA_R = 0x00;
+                Delay(d*c);
+            }
         }
 }
 
